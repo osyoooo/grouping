@@ -118,6 +118,15 @@ def generate_all_days(participants, num_days, num_groups):
     
     return all_day_groups, co_occurrence
 
+def style_matrix(df):
+    """マトリクスのスタイルを設定する関数"""
+    def highlight_cells(val):
+        if val >= 2:
+            return 'background-color: #FFE6E6'  # 淡い赤色
+        return ''
+    
+    return df.style.applymap(highlight_cells)
+
 # --- Streamlit App (Frontend) ---
 st.set_page_config(layout="wide")
 st.title('研修グループ分けアプリ 研修楽々くん')
@@ -152,6 +161,16 @@ with st.sidebar:
 
 if st.sidebar.button('グループ分けを作成する'):
     participants = generate_participant_list(company_participants)
+    
+    # ■追加1: 参加者リストの表示
+    st.header('👥 参加者リスト')
+    participant_data = []
+    for p in participants:
+        participant_data.append([p['id'], p['company']])
+    
+    df_participants = pd.DataFrame(participant_data, columns=['受講者ナンバー', '会社'])
+    st.table(df_participants.set_index('受講者ナンバー'))
+    
     all_day_groups, co_occurrence = generate_all_days(participants, num_days, num_groups)
 
     if all_day_groups:
@@ -180,7 +199,7 @@ if st.sidebar.button('グループ分けを作成する'):
             st.table(df_day.set_index('グループ名'))
 
         st.header('🤝 参加者の重複回数（マトリクス）')
-        st.info('縦軸と横軸の参加者番号が交差する数字が、研修全体で同じグループになった回数です。')
+        st.info('縦軸と横軸の参加者番号が交差する数字が、研修全体で同じグループになった回数です。2以上の場合は色付きで表示されます。')
         
         size = len(participants)
         matrix = np.zeros((size, size), dtype=int)
@@ -190,6 +209,9 @@ if st.sidebar.button('グループ分けを作成する'):
             matrix[p2_idx, p1_idx] = count
         
         df_matrix = pd.DataFrame(matrix, index=range(1, size + 1), columns=range(1, size + 1))
-        st.dataframe(df_matrix)
+        
+        # ■修正2: マトリクスに色付け機能を追加
+        styled_matrix = style_matrix(df_matrix)
+        st.dataframe(styled_matrix)
 else:
     st.info('サイドバーで条件を入力し、「グループ分けを作成する」ボタンを押してください。')
