@@ -161,16 +161,6 @@ with st.sidebar:
 
 if st.sidebar.button('グループ分けを作成する'):
     participants = generate_participant_list(company_participants)
-    
-    # ■追加1: 参加者リストの表示
-    st.header('👥 参加者リスト')
-    participant_data = []
-    for p in participants:
-        participant_data.append([p['id'], p['company']])
-    
-    df_participants = pd.DataFrame(participant_data, columns=['受講者ナンバー', '会社'])
-    st.table(df_participants.set_index('受講者ナンバー'))
-    
     all_day_groups, co_occurrence = generate_all_days(participants, num_days, num_groups)
 
     if all_day_groups:
@@ -213,5 +203,14 @@ if st.sidebar.button('グループ分けを作成する'):
         # ■修正2: マトリクスに色付け機能を追加
         styled_matrix = style_matrix(df_matrix)
         st.dataframe(styled_matrix)
+        
+        # ■追加1: 参加者リストの表示（最下部に移動）
+        st.header('👥 参加者リスト')
+        participant_data = []
+        for p in participants:
+            participant_data.append([p['id'], p['company']])
+        
+        df_participants = pd.DataFrame(participant_data, columns=['受講者ナンバー', '会社'])
+        st.table(df_participants.set_index('受講者ナンバー'))
 else:
     st.info('サイドバーで条件を入力し、「グループ分けを作成する」ボタンを押してください。')
